@@ -2,19 +2,34 @@
   "name": "chatbot-project",
   "version": "1.0.0",
   "type": "module",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node app.js",
+    "dev": "nodemon app.js"
   },
   "author": "Chamara Dissanayake",
   "license": "ISC",
   "description": "Chatbot powered by OpenAI",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": [
+    "chatbot",
+    "openai",
+    "twilio",
+    "firebase",
+    "crm"
+  ],
   "dependencies": {
-    "body-parser": "^1.20.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "firebase": "^11.3.1",
+    "node-schedule": "^2.1.1",
     "openai": "^4.78.1",
-    "readline-sync": "^1.4.10"
+    "twilio": "^5.4.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
   }
 }

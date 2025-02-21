@@ -1,3 +1,9 @@
 # ChatBot
 Chatbot powered by ChatGPT 4o-mini
 Api hosted in https://chatbot-2ib4.onrender.com
+
+
+# Invite your friends to your Sandbox. Use WhatsApp and send a message from your device to +1 415 523 8886 with code join angry-forgot.
+
+
+https://timberwolf-mastiff-9776.twil.io/demo-reply
