@@ -1,4 +1,4 @@
-import openai from "./config/open-ai.js";
+import openai from "./config/openai.config.js";
 import express from "express";
 import cors from 'cors';
 
