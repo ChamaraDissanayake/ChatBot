@@ -12,6 +12,12 @@ const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+
+// Redirect root URL to frontend
+app.get('/', (req, res) => {
+  res.redirect('https://chamaradissanayake.github.io/Chatbot-frontend/main/home');
+});
+
 app.use(express.urlencoded({ extended: true })); // For parsing Twilio webhook data
 
 // Routes
