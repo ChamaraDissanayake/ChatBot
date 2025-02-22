@@ -1,7 +1,19 @@
 import express from 'express';
-import { storeIncomingMessage, handleStatusCallback } from '../services/message.service.js';
+import { sendMessage, storeIncomingMessage, handleStatusCallback } from '../services/message.service.js';
 
 const router = express.Router();
+
+// Send a WhatsApp message
+router.post('/send', async (req, res) => {
+  try {
+    const { to, body } = req.body;
+    const message = await sendMessage(to, body);
+    res.json({ success: true, message });
+  } catch (error) {
+    console.error('Error sending message:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // Handle incoming messages (Twilio webhook)
 router.post('/incoming', async (req, res) => {

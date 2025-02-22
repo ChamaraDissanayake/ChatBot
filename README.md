@@ -7,3 +7,6 @@ Api hosted in https://chatbot-2ib4.onrender.com
 
 
 https://timberwolf-mastiff-9776.twil.io/demo-reply
+
+OpenAI email: hisoxoh917@lxheir.com
+Password: 1234567891011

@@ -3,6 +3,7 @@ import twilioClient from '../config/twilio.config.js';
 
 const scheduledMessages = [];
 
+// Schedule a message
 const scheduleMessage = (to, body, date) => {
   const job = schedule.scheduleJob(date, () => {
     twilioClient.messages.create({
@@ -15,6 +16,7 @@ const scheduleMessage = (to, body, date) => {
   return job;
 };
 
+// Get all scheduled messages
 const getScheduledMessages = () => {
   return scheduledMessages;
 };

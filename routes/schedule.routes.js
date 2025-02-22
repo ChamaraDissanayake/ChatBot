@@ -3,15 +3,27 @@ import { scheduleMessage, getScheduledMessages } from '../services/twilio.servic
 
 const router = express.Router();
 
-router.post('/', (req, res) => {
-  const { to, body, date } = req.body;
-  const job = scheduleMessage(to, body, date);
-  res.json({ success: true, jobId: job.name });
+// Schedule a message
+router.post('/', async (req, res) => {
+  try {
+    const { to, body, date } = req.body;
+    const job = scheduleMessage(to, body, date);
+    res.json({ success: true, jobId: job.name });
+  } catch (error) {
+    console.error('Error scheduling message:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
-router.get('/', (req, res) => {
-  const scheduledMessages = getScheduledMessages();
-  res.json(scheduledMessages);
+// Get all scheduled messages
+router.get('/', async (req, res) => {
+  try {
+    const scheduledMessages = getScheduledMessages();
+    res.json(scheduledMessages);
+  } catch (error) {
+    console.error('Error retrieving scheduled messages:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 export default router;
