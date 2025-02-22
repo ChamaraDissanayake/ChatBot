@@ -1,4 +1,4 @@
-import { collection, query, where, getDocs, addDoc, updateDoc, doc } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import db from '../config/firebase.config.js';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
 
