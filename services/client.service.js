@@ -1,13 +1,24 @@
+import { collection, query, where, getDocs, addDoc, updateDoc, doc } from 'firebase/firestore';
 import db from '../config/firebase.config.js';
-import { collection, addDoc, getDocs, query, where, updateDoc } from 'firebase/firestore';
+import { parsePhoneNumberFromString } from 'libphonenumber-js';
 
+// Normalize phone number using libphonenumber-js
+const normalizePhoneNumber = (phoneNumber) => {
+  const parsedNumber = parsePhoneNumberFromString(phoneNumber);
+  if (!parsedNumber || !parsedNumber.isValid()) {
+    throw new Error('Invalid phone number');
+  }
+  return parsedNumber.format('E.164'); // Format as E.164 (e.g., +1234567890)
+};
+
+// Add or update a client
 const addClient = async (clientData) => {
   try {
-    console.log('Adding/updating client:', clientData); // Debug log
+    const { phoneNumber } = clientData;
+    const normalizedNumber = normalizePhoneNumber(phoneNumber); // Normalize phone number
 
-    // Check if a client with the same phone number already exists
     const clientsRef = collection(db, 'clients');
-    const q = query(clientsRef, where('phoneNumber', '==', clientData.phoneNumber));
+    const q = query(clientsRef, where('phoneNumber', '==', normalizedNumber));
     const querySnapshot = await getDocs(q);
 
     let clientId;
@@ -19,33 +30,72 @@ const addClient = async (clientData) => {
       console.log('Client updated with ID:', clientId); // Debug log
     } else {
       // Client does not exist, create a new document
-      const docRef = await addDoc(clientsRef, clientData);
+      const docRef = await addDoc(clientsRef, { ...clientData, phoneNumber: normalizedNumber });
       clientId = docRef.id;
       console.log('Client added with ID:', clientId); // Debug log
     }
 
-    return { id: clientId, ...clientData };
+    return { id: clientId, ...clientData, phoneNumber: normalizedNumber };
   } catch (error) {
     console.error('Error adding/updating client:', error); // Debug log
     throw error;
   }
 };
 
+// Get all clients
 const getClients = async () => {
-  const snapshot = await getDocs(collection(db, 'clients'));
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  try {
+    const clientsRef = collection(db, 'clients');
+    const querySnapshot = await getDocs(clientsRef);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error('Error getting clients:', error);
+    throw error;
+  }
 };
 
-const updateClient = async (id, clientData) => {
-  const clientRef = doc(db, 'clients', id);
-  await updateDoc(clientRef, clientData);
-  return { id, ...clientData };
+// Update a client by phone number
+const updateClient = async (phoneNumber, clientData) => {
+  try {
+    const normalizedNumber = normalizePhoneNumber(phoneNumber); // Normalize phone number
+
+    const clientsRef = collection(db, 'clients');
+    const q = query(clientsRef, where('phoneNumber', '==', normalizedNumber));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      throw new Error('Client not found');
+    }
+
+    const docRef = querySnapshot.docs[0].ref;
+    await updateDoc(docRef, clientData);
+    return { phoneNumber: normalizedNumber, ...clientData };
+  } catch (error) {
+    console.error('Error updating client:', error);
+    throw error;
+  }
 };
 
-const deleteClient = async (id) => {
-  const clientRef = doc(db, 'clients', id);
-  await deleteDoc(clientRef);
-  return { id };
+// Delete a client by phone number
+const deleteClient = async (phoneNumber) => {
+  try {
+    const normalizedNumber = normalizePhoneNumber(phoneNumber); // Normalize phone number
+
+    const clientsRef = collection(db, 'clients');
+    const q = query(clientsRef, where('phoneNumber', '==', normalizedNumber));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      throw new Error('Client not found');
+    }
+
+    const docRef = querySnapshot.docs[0].ref;
+    await deleteDoc(docRef);
+    return { phoneNumber: normalizedNumber };
+  } catch (error) {
+    console.error('Error deleting client:', error);
+    throw error;
+  }
 };
 
 export { addClient, getClients, updateClient, deleteClient };

@@ -3,24 +3,46 @@ import { addClient, getClients, updateClient, deleteClient } from '../services/c
 
 const router = express.Router();
 
+// Add a new client
 router.post('/', async (req, res) => {
-  const client = await addClient(req.body);
-  res.status(201).json(client);
+  try {
+    const client = await addClient(req.body);
+    res.status(201).json(client);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
 });
 
+// Get all clients
 router.get('/', async (req, res) => {
-  const clients = await getClients();
-  res.json(clients);
+  try {
+    const clients = await getClients();
+    res.json(clients);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
-router.put('/:id', async (req, res) => {
-  const client = await updateClient(req.params.id, req.body);
-  res.json(client);
+// Update a client by phone number
+router.put('/:phoneNumber', async (req, res) => {
+  try {
+    const { phoneNumber } = req.params;
+    const client = await updateClient(phoneNumber, req.body);
+    res.json(client);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
 });
 
-router.delete('/:id', async (req, res) => {
-  await deleteClient(req.params.id);
-  res.status(204).send();
+// Delete a client by phone number
+router.delete('/:phoneNumber', async (req, res) => {
+  try {
+    const { phoneNumber } = req.params;
+    await deleteClient(phoneNumber);
+    res.status(204).send();
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
 });
 
 export default router;
