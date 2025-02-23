@@ -9,7 +9,7 @@ import {
 } from 'firebase/firestore';
 import db from '../config/firebase.config.js';
 import twilioClient from '../config/twilio.config.js';
-import { getClientByPhoneNumber } from './client.service.js';
+import { getClientByPhoneNumber, addClient } from './client.service.js';
 import { getChatResponse } from './chatbot.service.js';
 
 const twilioNumber = '+14155238886';
