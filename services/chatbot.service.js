@@ -15,29 +15,26 @@ const getChatResponse = async (userId, userInput) => {
     // Retrieve chat history from messageLogs
     let chatHistory = await getChatHistory(userId);
 
-    // Initialize system message if no history exists
-    if (chatHistory.length === 0) {
-      const systemMessage = {
-        role: 'system',
-        content: `You are an AI assistant for XYZ Corporation.
+    // Define the system message
+    const systemMessage = {
+      role: 'system',
+      content: `You are an AI assistant for XYZ Corporation.
 
-        Company Overview:
-        - XYZ Corporation specializes in providing software solutions and visa-related services.
-        - Branches: Dubai, Sharjah, and Abu Dhabi.
-        - Employee Count: 50 staff members.
-        - Services: Visa processing, renewals, cancellations, and general consulting.
+      Company Overview:
+      - XYZ Corporation specializes in providing software solutions and visa-related services.
+      - Branches: Dubai, Sharjah, and Abu Dhabi.
+      - Employee Count: 50 staff members.
+      - Services: Visa processing, renewals, cancellations, and general consulting.
 
-        Key Information:
-        - Refund Policy: Customers can request a refund within 30 days of purchase under certain conditions.
-        - Customer Support: Available 24/7 via our website or helpline.
-        - Premium Plans: Include priority visa services, analytics, and extended support.
+      Key Information:
+      - Refund Policy: Customers can request a refund within 30 days of purchase under certain conditions.
+      - Customer Support: Available 24/7 via our website or helpline.
+      - Premium Plans: Include priority visa services, analytics, and extended support.
 
-        Guidelines for responses:
-        - Provide short, direct answers (no more than 2 sentences).
-        - Do not include greetings in responses.`,
-      };
-      chatHistory = [systemMessage];
-    }
+      Guidelines for responses:
+      - Provide short, direct answers (no more than 2 sentences).
+      - Do not include greetings in responses.`,
+    };
 
     // Transform chatHistory into the correct format for OpenAI API
     const messages = chatHistory.map(message => {
@@ -45,10 +42,11 @@ const getChatResponse = async (userId, userInput) => {
         return { role: 'user', content: message.body }; // User messages
       } else if (message.direction === 'outgoing') {
         return { role: 'assistant', content: message.body }; // Assistant messages
-      } else if (message.role === 'system') {
-        return { role: 'system', content: message.content }; // System messages
       }
     }).filter(Boolean); // Remove any undefined entries
+
+    // Add the system message at the beginning of the messages array
+    messages.unshift(systemMessage);
 
     // Add the new user input to the messages array
     messages.push({ role: 'user', content: userInput });
