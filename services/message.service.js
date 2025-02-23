@@ -5,13 +5,12 @@ import {
   where,
   getDocs,
   updateDoc,
+  orderBy,
 } from 'firebase/firestore';
 import db from '../config/firebase.config.js';
-import twilioClient from '../config/twilio.config.js';
+import { twilioClient, twilioNumber } from '../config/twilio.config.js';
 import { getClientByPhoneNumber } from './client.service.js';
 import { getChatResponse } from './chatbot.service.js';
-
-const twilioNumber = '+14155238886' // Your Twilio WhatsApp number
 
 // Send a message and store it in Firestore
 const sendMessage = async (to, body, direction = 'outgoing') => {
@@ -32,6 +31,7 @@ const sendMessage = async (to, body, direction = 'outgoing') => {
       status: 'sent',
       messageSid: message.sid,
       chatHandover: false, // Default to false
+      userId: to, // Add userId (phone number)
     });
 
     return message;
@@ -66,6 +66,7 @@ const storeIncomingMessage = async (from, body) => {
       timestamp: new Date(),
       status: 'received',
       chatHandover, // Save handover status
+      userId: cleanFrom, // Add userId (phone number)
     });
 
     // If chat is not handed over, trigger chatbot reply
@@ -103,31 +104,18 @@ const handleStatusCallback = async (messageSid, status) => {
 const getChatHistory = async (phoneNumber) => {
   try {
     const messagesRef = collection(db, 'messageLogs');
-
-    // Query messages where "to" is the phoneNumber
-    const q1 = query(messagesRef, where('to', '==', phoneNumber));
-    const snapshot1 = await getDocs(q1);
-    
-    // Query messages where "from" is the phoneNumber
-    const q2 = query(messagesRef, where('from', '==', phoneNumber));
-    const snapshot2 = await getDocs(q2);
-
-    // Merge both query results
-    let messages = [
-      ...snapshot1.docs.map(doc => doc.data()),
-      ...snapshot2.docs.map(doc => doc.data())
-    ];
-
-    // Sort messages by timestamp
-    messages.sort((a, b) => a.timestamp - b.timestamp);
-
-    return messages;
+    const q = query(
+      messagesRef,
+      where('userId', '==', phoneNumber), // Filter by userId
+      orderBy('timestamp', 'asc') // Order by timestamp
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => doc.data());
   } catch (error) {
     console.error('Error retrieving chat history:', error);
     throw error;
   }
 };
-
 
 // Export all functions
 export { sendMessage, sendTemplateMessage, storeIncomingMessage, handleStatusCallback, getChatHistory };

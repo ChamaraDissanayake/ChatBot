@@ -1,25 +1,6 @@
 import openai from '../config/openai.config.js';
-import { collection, addDoc, query, where, getDocs, orderBy } from 'firebase/firestore';
-import db from '../config/firebase.config.js';
 import { getClientByPhoneNumber, updateClient } from './client.service.js';
-
-// Store chat history in Firestore
-const storeChatHistory = async (userId, role, content) => {
-  await addDoc(collection(db, 'chatHistory'), {
-    userId,
-    role,
-    content,
-    timestamp: new Date(),
-  });
-};
-
-// Get chat history from Firestore
-const getChatHistory = async (userId) => {
-  const chatHistoryRef = collection(db, 'chatHistory');
-  const q = query(chatHistoryRef, where('userId', '==', userId), orderBy('timestamp', 'asc'));
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => doc.data());
-};
+import { getChatHistory } from './message.service.js'; // Import from message.service.js
 
 // Get chatbot response
 const getChatResponse = async (userId, userInput) => {
@@ -30,7 +11,7 @@ const getChatResponse = async (userId, userInput) => {
       return { botResponse: 'A human agent will assist you shortly.' };
     }
 
-    // Retrieve chat history from Firestore
+    // Retrieve chat history from messageLogs
     let chatHistory = await getChatHistory(userId);
 
     // Initialize system message if no history exists
@@ -54,7 +35,6 @@ const getChatResponse = async (userId, userInput) => {
         - Provide short, direct answers (no more than 2 sentences).
         - Do not include greetings in responses.`,
       };
-      await storeChatHistory(userId, systemMessage.role, systemMessage.content);
       chatHistory = [systemMessage];
     }
 
@@ -69,10 +49,6 @@ const getChatResponse = async (userId, userInput) => {
     });
 
     const botResponse = completion.choices[0].message.content;
-
-    // Store user input and bot response in Firestore
-    await storeChatHistory(userId, 'user', userInput);
-    await storeChatHistory(userId, 'assistant', botResponse);
 
     return { botResponse };
   } catch (error) {
