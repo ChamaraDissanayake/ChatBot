@@ -8,7 +8,7 @@ const getChatResponse = async (userId, userInput) => {
     // Check if the chat has been handed over to a human
     const client = await getClientByPhoneNumber(userId);
     console.log('client', client);
-    
+
     if (client.chatHandover) {
       return { botResponse: 'A human agent will assist you shortly.' };
     }
@@ -16,6 +16,7 @@ const getChatResponse = async (userId, userInput) => {
     // Retrieve chat history from messageLogs
     let chatHistory = await getChatHistory(userId);
     console.log('chatHistory', chatHistory);
+
     // Initialize system message if no history exists
     if (chatHistory.length === 0) {
       const systemMessage = {
@@ -39,21 +40,36 @@ const getChatResponse = async (userId, userInput) => {
       };
       chatHistory = [systemMessage];
     }
+
     console.log('Before messages', chatHistory);
-    
-    // Prepare messages array for the OpenAI API
-    const messages = chatHistory.map(({ role, content }) => ({ role, content }));
+
+    // Transform chatHistory into the correct format for OpenAI API
+    const messages = chatHistory.map(message => {
+      if (message.direction === 'incoming') {
+        return { role: 'user', content: message.body }; // User messages
+      } else if (message.direction === 'outgoing') {
+        return { role: 'assistant', content: message.body }; // Assistant messages
+      } else if (message.role === 'system') {
+        return { role: 'system', content: message.content }; // System messages
+      }
+    }).filter(Boolean); // Remove any undefined entries
+
     console.log('messages 1', messages);
-    messages.push({ role: 'user', content: userInput }); // Ensure role is set for user input
+
+    // Add the new user input to the messages array
+    messages.push({ role: 'user', content: userInput });
     console.log('messages 2', messages);
+
     // Call OpenAI API to get a response
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini', // Use your preferred model
       messages: messages,
     });
     console.log('completion', completion);
+
     const botResponse = completion.choices[0].message.content;
     console.log('botResponse', botResponse);
+
     return { botResponse };
   } catch (error) {
     console.error('Error getting chatbot response:', error);
