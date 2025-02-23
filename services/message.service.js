@@ -8,9 +8,11 @@ import {
   orderBy,
 } from 'firebase/firestore';
 import db from '../config/firebase.config.js';
-import { twilioClient, twilioNumber } from '../config/twilio.config.js';
+import { twilioClient } from '../config/twilio.config.js';
 import { getClientByPhoneNumber } from './client.service.js';
 import { getChatResponse } from './chatbot.service.js';
+
+const twilioNumber = '+14155238886';
 
 // Send a message and store it in Firestore
 const sendMessage = async (to, body, direction = 'outgoing') => {
@@ -57,9 +59,14 @@ const storeIncomingMessage = async (from, body) => {
     const client = await getClientByPhoneNumber(cleanFrom);
     const chatHandover = client?.chatHandover || false;
 
+    // Ensure twilioNumber is defined
+    if (!twilioNumber) {
+      throw new Error('Twilio number is not defined.');
+    }
+
     // Store the incoming message
     await addDoc(collection(db, 'messageLogs'), {
-      to: twilioNumber,
+      to: twilioNumber, // Ensure this is defined
       from: cleanFrom,
       body,
       direction: 'incoming',

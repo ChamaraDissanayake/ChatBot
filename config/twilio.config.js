@@ -6,6 +6,4 @@ const twilioClient = twilio(
   env.TWILIO_AUTH_TOKEN
 );
 
-const twilioNumber = env.TWILIO_WHATSAPP_NUMBER;
-
-export { twilioClient, twilioNumber };
+export default twilioClient;
