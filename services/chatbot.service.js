@@ -1,6 +1,7 @@
 import openai from '../config/openai.config.js';
-import { collection, addDoc, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, orderBy, updateDoc } from 'firebase/firestore';
 import db from '../config/firebase.config.js';
+import { getClientByPhoneNumber, updateClient } from './client.service.js';
 
 // Store chat history in Firestore
 const storeChatHistory = async (userId, role, content) => {
@@ -23,6 +24,12 @@ const getChatHistory = async (userId) => {
 // Get chatbot response
 const getChatResponse = async (userId, userInput) => {
   try {
+    // Check if the chat has been handed over to a human
+    const client = await getClientByPhoneNumber(userId);
+    if (client.chatHandover) {
+      return { botResponse: 'A human agent will assist you shortly.' };
+    }
+
     // Retrieve chat history from Firestore
     let chatHistory = await getChatHistory(userId);
 
@@ -74,4 +81,15 @@ const getChatResponse = async (userId, userInput) => {
   }
 };
 
-export { getChatResponse };
+// Handover chat to a human
+const handoverToHuman = async (userId) => {
+  try {
+    await updateClient(userId, { chatHandover: true });
+    return { success: true, message: 'Chat handed over to a human agent.' };
+  } catch (error) {
+    console.error('Error handing over chat:', error);
+    throw error;
+  }
+};
+
+export { getChatResponse, handoverToHuman };

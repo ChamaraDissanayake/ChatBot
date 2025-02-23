@@ -11,6 +11,25 @@ const normalizePhoneNumber = (phoneNumber) => {
   return parsedNumber.format('E.164'); // Format as E.164 (e.g., +1234567890)
 };
 
+// Get client by phone number
+const getClientByPhoneNumber = async (phoneNumber) => {
+  try {
+    const normalizedNumber = normalizePhoneNumber(phoneNumber);
+    const clientsRef = collection(db, 'clients');
+    const q = query(clientsRef, where('phoneNumber', '==', normalizedNumber));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      throw new Error('Client not found');
+    }
+
+    return { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() };
+  } catch (error) {
+    console.error('Error fetching client:', error);
+    throw error;
+  }
+};
+
 // Add or update a client
 const addClient = async (clientData) => {
   try {
@@ -98,4 +117,4 @@ const deleteClient = async (phoneNumber) => {
   }
 };
 
-export { addClient, getClients, updateClient, deleteClient };
+export { addClient, getClients, updateClient, deleteClient, getClientByPhoneNumber };
