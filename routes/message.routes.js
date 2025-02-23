@@ -35,23 +35,13 @@ router.post('/send-template', async (req, res) => {
 
 // Handle incoming messages (Twilio webhook)
 router.post('/incoming', async (req, res) => {
+  const { From, Body } = req.body;
   try {
-    console.log('Incoming message payload:', req.body);
-
-    // Process the incoming message
-    const { From, Body } = req.body;
-    if (!From || !Body) {
-      return res.status(400).json({ error: 'Missing required fields: From, Body' });
-    }
-
-    // Save the message to Firestore or perform other actions
-    await addDoc(messagesRef, { from: From, body: Body, timestamp: new Date() });
-
-    // Respond to Twilio
+    await storeIncomingMessage(From, Body);
     res.status(200).send('<Response></Response>');
   } catch (error) {
     console.error('Error handling incoming message:', error);
-    res.status(500).send('<Response><Message>Internal Server Error</Message></Response>');
+    res.status(500).send('<Response></Response>');
   }
 });
 
