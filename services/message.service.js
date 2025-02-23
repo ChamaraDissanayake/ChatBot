@@ -4,31 +4,34 @@ import {
   query,
   where,
   getDocs,
-  orderBy,
-  doc,
   updateDoc,
 } from 'firebase/firestore';
 import db from '../config/firebase.config.js';
 import twilioClient from '../config/twilio.config.js';
+import { getClientByPhoneNumber } from './client.service.js';
+import { getChatResponse } from './chatbot.service.js';
+
+const twilioNumber = '+14155238886' // Your Twilio WhatsApp number
 
 // Send a message and store it in Firestore
 const sendMessage = async (to, body, direction = 'outgoing') => {
   try {
     const message = await twilioClient.messages.create({
       body: body,
-      from: 'whatsapp:+14155238886', // Your Twilio WhatsApp number
+      from: `whatsapp:${twilioNumber}`,
       to: `whatsapp:${to}`,
     });
 
     // Store the message in Firestore
     await addDoc(collection(db, 'messageLogs'), {
       to: to,
-      from: '+14155238886',
+      from: twilioNumber,
       body,
       direction,
       timestamp: new Date(),
       status: 'sent',
       messageSid: message.sid,
+      chatHandover: false, // Default to false
     });
 
     return message;
@@ -50,14 +53,26 @@ const storeIncomingMessage = async (from, body) => {
     // Remove "whatsapp:" prefix
     const cleanFrom = from.replace(/^whatsapp:/, '');
 
+    // Check if chat is handed over
+    const client = await getClientByPhoneNumber(cleanFrom);
+    const chatHandover = client?.chatHandover || false;
+
+    // Store the incoming message
     await addDoc(collection(db, 'messageLogs'), {
-      to: '+14155238886',
+      to: twilioNumber,
       from: cleanFrom,
       body,
       direction: 'incoming',
       timestamp: new Date(),
       status: 'received',
+      chatHandover, // Save handover status
     });
+
+    // If chat is not handed over, trigger chatbot reply
+    if (!chatHandover) {
+      const { botResponse } = await getChatResponse(cleanFrom, body);
+      await sendMessage(cleanFrom, botResponse); // Send chatbot reply
+    }
   } catch (error) {
     console.error('Error storing incoming message:', error);
     throw error;

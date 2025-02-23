@@ -1,5 +1,5 @@
 import openai from '../config/openai.config.js';
-import { collection, addDoc, query, where, getDocs, orderBy, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, orderBy } from 'firebase/firestore';
 import db from '../config/firebase.config.js';
 import { getClientByPhoneNumber, updateClient } from './client.service.js';
 
