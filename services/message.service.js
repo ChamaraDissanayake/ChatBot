@@ -47,9 +47,12 @@ const sendTemplateMessage = async (to, clientName) => {
 // Store incoming messages in Firestore
 const storeIncomingMessage = async (from, body) => {
   try {
+    // Remove "whatsapp:" prefix
+    const cleanFrom = from.replace(/^whatsapp:/, '');
+
     await addDoc(collection(db, 'messageLogs'), {
       to: '+14155238886',
-      from: from,
+      from: cleanFrom,
       body,
       direction: 'incoming',
       timestamp: new Date(),
@@ -85,20 +88,31 @@ const handleStatusCallback = async (messageSid, status) => {
 const getChatHistory = async (phoneNumber) => {
   try {
     const messagesRef = collection(db, 'messageLogs');
-    const q = query(
-      messagesRef,
-      where('to', '==', phoneNumber),
-      where('from', '==', '+14155238886'),
-      orderBy('timestamp', 'asc')
-    );
 
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => doc.data());
+    // Query messages where "to" is the phoneNumber
+    const q1 = query(messagesRef, where('to', '==', phoneNumber));
+    const snapshot1 = await getDocs(q1);
+    
+    // Query messages where "from" is the phoneNumber
+    const q2 = query(messagesRef, where('from', '==', phoneNumber));
+    const snapshot2 = await getDocs(q2);
+
+    // Merge both query results
+    let messages = [
+      ...snapshot1.docs.map(doc => doc.data()),
+      ...snapshot2.docs.map(doc => doc.data())
+    ];
+
+    // Sort messages by timestamp
+    messages.sort((a, b) => a.timestamp - b.timestamp);
+
+    return messages;
   } catch (error) {
     console.error('Error retrieving chat history:', error);
     throw error;
   }
 };
+
 
 // Export all functions
 export { sendMessage, sendTemplateMessage, storeIncomingMessage, handleStatusCallback, getChatHistory };
