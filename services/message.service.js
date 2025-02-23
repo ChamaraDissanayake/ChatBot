@@ -61,9 +61,15 @@ const storeIncomingMessage = async (from, body) => {
       client = await addClient({ 
         phoneNumber: cleanFrom, 
         name: 'New User', // Default name
-        status: 'active', // Default status
+        isActive: true, // Default isActive
         chatHandover: false // Default chatHandover
       });
+    }
+
+    // Check if the client is active
+    if (!client.isActive) {
+      console.log(`Client ${cleanFrom} is inactive. Ignoring message.`);
+      return; // Exit the function without processing the message
     }
 
     // Store the incoming message

@@ -1,5 +1,5 @@
 import express from 'express';
-import { addClient, getClients, updateClient, deleteClient } from '../services/client.service.js';
+import { addClient, getClients, updateClient, deactivateClient } from '../services/client.service.js';
 
 const router = express.Router();
 
@@ -38,7 +38,7 @@ router.put('/:phoneNumber', async (req, res) => {
 router.delete('/:phoneNumber', async (req, res) => {
   try {
     const { phoneNumber } = req.params;
-    await deleteClient(phoneNumber);
+    await deactivateClient(phoneNumber);
     res.status(204).send();
   } catch (error) {
     res.status(400).json({ error: error.message });

@@ -24,7 +24,7 @@ const getClientByPhoneNumber = async (phoneNumber) => {
     }
 
     const doc = querySnapshot.docs[0];
-    return { id: doc.id, ...doc.data() }; // Return client data
+    return { id: doc.id, ...doc.data() }; // Return all client data
   } catch (error) {
     console.error('Error fetching client:', error);
     throw error;
@@ -51,7 +51,8 @@ const addClient = async (clientData) => {
       // Client does not exist, create a new document
       const docRef = await addDoc(clientsRef, { 
         ...clientData, 
-        phoneNumber: normalizedNumber 
+        phoneNumber: normalizedNumber,
+        isActive: true // Default value for new clients
       });
       clientId = docRef.id;
     }
@@ -68,7 +69,7 @@ const getClients = async () => {
   try {
     const clientsRef = collection(db, 'clients');
     const querySnapshot = await getDocs(clientsRef);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); // Return all clients
   } catch (error) {
     console.error('Error getting clients:', error);
     throw error;
@@ -98,7 +99,7 @@ const updateClient = async (phoneNumber, clientData) => {
 };
 
 // Delete a client by phone number
-const deleteClient = async (phoneNumber) => {
+const deactivateClient = async (phoneNumber) => {
   try {
     const normalizedNumber = normalizePhoneNumber(phoneNumber); // Normalize phone number
 
@@ -111,12 +112,12 @@ const deleteClient = async (phoneNumber) => {
     }
 
     const docRef = querySnapshot.docs[0].ref;
-    await deleteDoc(docRef);
-    return { phoneNumber: normalizedNumber };
+    await updateDoc(docRef, { isActive: false }); // Update isActive to false
+    return { phoneNumber: normalizedNumber, isActive: false };
   } catch (error) {
-    console.error('Error deleting client:', error);
+    console.error('Error deactivating client:', error);
     throw error;
   }
 };
 
-export { addClient, getClients, updateClient, deleteClient, getClientByPhoneNumber };
+export { addClient, getClients, updateClient, deactivateClient, getClientByPhoneNumber };
