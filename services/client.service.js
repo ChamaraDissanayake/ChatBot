@@ -14,16 +14,17 @@ const normalizePhoneNumber = (phoneNumber) => {
 // Get client by phone number
 const getClientByPhoneNumber = async (phoneNumber) => {
   try {
-    const normalizedNumber = normalizePhoneNumber(phoneNumber);
+    const normalizedNumber = normalizePhoneNumber(phoneNumber); // Normalize phone number
     const clientsRef = collection(db, 'clients');
     const q = query(clientsRef, where('phoneNumber', '==', normalizedNumber));
     const querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {
-      throw new Error('Client not found');
+      return null; // Return null if client is not found
     }
 
-    return { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() };
+    const doc = querySnapshot.docs[0];
+    return { id: doc.id, ...doc.data() }; // Return client data
   } catch (error) {
     console.error('Error fetching client:', error);
     throw error;
