@@ -54,29 +54,32 @@ const storeIncomingMessage = async (from, body) => {
     // Remove "whatsapp:" prefix
     const cleanFrom = from.replace(/^whatsapp:/, '');
 
-    // Check if chat is handed over
-    const client = await getClientByPhoneNumber(cleanFrom);
-    const chatHandover = client?.chatHandover || false;
-
-    // Ensure twilioNumber is defined
-    if (!twilioNumber) {
-      throw new Error('Twilio number is not defined.');
+    // Check if client exists, or create a new one
+    let client = await getClientByPhoneNumber(cleanFrom);
+    if (!client) {
+      // Create a new client with default values
+      client = await addClient({ 
+        phoneNumber: cleanFrom, 
+        name: 'New User', // Default name
+        status: 'active', // Default status
+        chatHandover: false // Default chatHandover
+      });
     }
 
     // Store the incoming message
     await addDoc(collection(db, 'messageLogs'), {
-      to: twilioNumber, // Ensure this is defined
+      to: twilioNumber,
       from: cleanFrom,
       body,
       direction: 'incoming',
       timestamp: new Date(),
       status: 'received',
-      chatHandover, // Save handover status
-      userId: cleanFrom, // Add userId (phone number)
+      chatHandover: client.chatHandover || false, // Use existing value or default to false
+      userId: cleanFrom,
     });
 
     // If chat is not handed over, trigger chatbot reply
-    if (!chatHandover) {
+    if (!client.chatHandover) {
       const { botResponse } = await getChatResponse(cleanFrom, body);
       await sendMessage(cleanFrom, botResponse); // Send chatbot reply
     }

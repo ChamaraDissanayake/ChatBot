@@ -48,13 +48,16 @@ const addClient = async (clientData) => {
       clientId = docRef.id;
     } else {
       // Client does not exist, create a new document
-      const docRef = await addDoc(clientsRef, { ...clientData, phoneNumber: normalizedNumber });
+      const docRef = await addDoc(clientsRef, { 
+        ...clientData, 
+        phoneNumber: normalizedNumber 
+      });
       clientId = docRef.id;
     }
 
     return { id: clientId, ...clientData, phoneNumber: normalizedNumber };
   } catch (error) {
-    console.error('Error adding/updating client:', error); // Debug log
+    console.error('Error adding/updating client:', error);
     throw error;
   }
 };
