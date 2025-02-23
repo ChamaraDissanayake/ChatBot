@@ -1,5 +1,5 @@
 import openai from '../config/openai.config.js';
-import { getClientByPhoneNumber, updateClient } from './client.service.js';
+import { getClientByPhoneNumber } from './client.service.js';
 import { getChatHistory } from './message.service.js';
 
 // Get chatbot response
@@ -66,15 +66,4 @@ const getChatResponse = async (userId, userInput) => {
   }
 };
 
-// Handover chat to a human
-const handoverToHuman = async (userId) => {
-  try {
-    await updateClient(userId, { chatHandover: true });
-    return { success: true, message: 'Chat handed over to a human agent.' };
-  } catch (error) {
-    console.error('Error handing over chat:', error);
-    throw error;
-  }
-};
-
-export { getChatResponse, handoverToHuman };
+export { getChatResponse };
