@@ -46,12 +46,10 @@ const addClient = async (clientData) => {
       const docRef = querySnapshot.docs[0].ref;
       await updateDoc(docRef, clientData);
       clientId = docRef.id;
-      console.log('Client updated with ID:', clientId); // Debug log
     } else {
       // Client does not exist, create a new document
       const docRef = await addDoc(clientsRef, { ...clientData, phoneNumber: normalizedNumber });
       clientId = docRef.id;
-      console.log('Client added with ID:', clientId); // Debug log
     }
 
     return { id: clientId, ...clientData, phoneNumber: normalizedNumber };

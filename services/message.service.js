@@ -8,11 +8,9 @@ import {
   orderBy,
 } from 'firebase/firestore';
 import db from '../config/firebase.config.js';
-import twilioClient from '../config/twilio.config.js';
+import { twilioClient, twilioNumber} from '../config/twilio.config.js';
 import { getClientByPhoneNumber } from './client.service.js';
 import { getChatResponse } from './chatbot.service.js';
-
-const twilioNumber = '+14155238886';
 
 // Send a message and store it in Firestore
 const sendMessage = async (to, body, direction = 'outgoing') => {
@@ -52,8 +50,6 @@ const sendTemplateMessage = async (to, clientName) => {
 // Store incoming messages in Firestore
 const storeIncomingMessage = async (from, body) => {
   try {
-    console.log('Message received', from, body);
-    
     // Remove "whatsapp:" prefix
     const cleanFrom = from.replace(/^whatsapp:/, '');
 
@@ -99,7 +95,6 @@ const handleStatusCallback = async (messageSid, status) => {
     if (!querySnapshot.empty) {
       const docRef = querySnapshot.docs[0].ref;
       await updateDoc(docRef, { status });
-      console.log(`Updated message status for SID ${messageSid} to ${status}`);
     } else {
       console.error(`Message with SID ${messageSid} not found`);
     }
