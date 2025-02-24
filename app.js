@@ -17,7 +17,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Redirect root URL to frontend
 app.get('/', (req, res) => {
-  res.redirect('https://chamaradissanayake.github.io/Chatbot-frontend/main/home');
+  res.redirect('https://chatbot-frontend-csykea58j-chamara-dissanayakes-projects.vercel.app/clients');
 });
 
 // Routes
